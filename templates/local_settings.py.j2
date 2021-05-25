@@ -1,0 +1,430 @@
+# -*- coding: utf-8 -*-
+
+import os
+from django.utils.translation import ugettext_lazy as _
+from horizon.utils import secret_key
+from openstack_dashboard.settings import HORIZON_CONFIG
+
+DEBUG = False
+
+WEBROOT = '{{ webroot }}'
+
+# https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
+ALLOWED_HOSTS = [{% for host in allowed_hosts %}'{{ host }}'{% if not loop.last %},{% endif %}{% endfor %}]
+
+USE_SSL = {{ use_ssl | bool }}
+CSRF_COOKIE_SECURE = {{ use_ssl | bool }}
+SESSION_COOKIE_SECURE = {{ use_ssl | bool }}
+SESSION_COOKIE_HTTPONLY = {{ use_ssl | bool }}
+
+OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = {{ horizon_keystone.multidomain | bool }}
+
+{% if horizon_keystone.domain_dropdown | bool %}
+OPENSTACK_KEYSTONE_DOMAIN_DROPDOWN = True
+OPENSTACK_KEYSTONE_DOMAIN_CHOICES = (
+{% for key, value in horizon_keystone.domain_choices.items() %}
+    ('{{ key }}', '{{ value }}'),
+{% endfor %}
+)
+{% endif %}
+
+# Keystone admin policy domain name of the domain whose ID is specified there.
+OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "{{ horizon_keystone.default_domain | default('Default') }}"
+
+# valid options are "AUTO"(default), "VNC", "SPICE", "RDP", "SERIAL", "MKS"
+CONSOLE_TYPE = "{{ console_type }}"
+
+SHOW_OPENRC_FILE = True
+SHOW_OPENSTACK_CLOUDS_YAML = True
+DEFAULT_THEME = 'ubuntu'
+COMPRESS_OFFLINE = True
+
+OPENSTACK_HOST = "{{ horizon_host_name }}"
+OPENSTACK_KEYSTONE_URL = "https://{{ horizon_host_name }}:{{ keystone_port }}/v3"
+OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"
+
+{% for key, value in horizon_config.items() %}
+HORIZON_CONFIG["{{ key }}"] = "{{ value }}"
+{% endfor %}
+
+LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
+SECRET_KEY = secret_key.generate_or_read_from_file('{{ secret_key | default("/var/lib/openstack-dashboard/secret_key") }}')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '{{ horizon_host_name }}:{{ memcached_port }}',
+    },
+}
+
+OPENSTACK_API_VERSIONS = {
+    "identity": 3,
+    "image": 2,
+    "volume": 3,
+}
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+OPENSTACK_KEYSTONE_BACKEND = {
+    'name': 'native',
+    'can_edit_user': True,
+    'can_edit_group': True,
+    'can_edit_project': True,
+    'can_edit_domain': True,
+    'can_edit_role': True,
+}
+
+LAUNCH_INSTANCE_DEFAULTS = {
+    'config_drive': False,
+    'enable_scheduler_hints': True,
+    'disable_image': False,
+    'disable_instance_snapshot': False,
+    'disable_volume': False,
+    'disable_volume_snapshot': False,
+    'create_volume': False,
+}
+
+
+OPENSTACK_HYPERVISOR_FEATURES = {
+    'can_set_mount_point': False,
+    'can_set_password': False,
+    'requires_keypair': False,
+    'enable_quotas': True
+}
+
+# This settings controls whether IP addresses of servers are retrieved from
+# neutron in the project instance table. Setting this to ``False`` may mitigate
+# a performance issue in the project instance table in large deployments.
+#OPENSTACK_INSTANCE_RETRIEVE_IP_ADDRESSES = True
+
+# The OPENSTACK_CINDER_FEATURES settings can be used to enable optional
+# services provided by cinder that is not exposed by its extension API.
+OPENSTACK_CINDER_FEATURES = {
+    'enable_backup': False,
+}
+
+# The OPENSTACK_NEUTRON_NETWORK settings can be used to enable optional
+# services provided by neutron. Options currently available are load
+# balancer service, security groups, quotas, VPN service.
+OPENSTACK_NEUTRON_NETWORK = {
+    'enable_router': True,
+    'enable_quotas': True,
+    'enable_ipv6': True,
+    'enable_distributed_router': False,
+    'enable_ha_router': False,
+    'enable_fip_topology_check': True,
+
+    # 'default_dns_nameservers': ["8.8.8.8", "8.8.4.4", "208.67.222.222"],
+    # 'supported_provider_types': ['*'],
+
+    'supported_vnic_types': ['*'],
+    'physical_networks': [],
+
+}
+
+# The OPENSTACK_HEAT_STACK settings can be used to disable password
+# field required while launching the stack.
+OPENSTACK_HEAT_STACK = {
+    'enable_user_pass': True,
+}
+
+IMAGE_CUSTOM_PROPERTY_TITLES = {
+    "architecture": _("Architecture"),
+    "kernel_id": _("Kernel ID"),
+    "ramdisk_id": _("Ramdisk ID"),
+    "image_state": _("Euca2ools state"),
+    "project_id": _("Project ID"),
+    "image_type": _("Image Type"),
+}
+
+IMAGE_RESERVED_CUSTOM_PROPERTIES = []
+
+# 'legacy' or 'direct'
+HORIZON_IMAGES_UPLOAD_MODE = '{{ images_upload_mode }}'
+
+IMAGES_ALLOW_LOCATION = False
+
+#CREATE_IMAGE_DEFAULTS = {
+#    'image_visibility': "public",
+#}
+
+API_RESULT_LIMIT = 1000
+API_RESULT_PAGE_SIZE = 20
+
+# The size of chunk in bytes for downloading objects from Swift
+SWIFT_FILE_TRANSFER_CHUNK_SIZE = 512 * 1024
+
+# The default number of lines displayed for instance console log.
+INSTANCE_LOG_LENGTH = 35
+
+# Specify a maximum number of items to display in a dropdown.
+DROPDOWN_MAX_ITEMS = 30
+
+TIME_ZONE = "{{ timezone }}"
+
+
+LOGGING = {
+    'version': 1,
+    # When set to True this will disable all logging except
+    # for loggers specified in this configuration dictionary. Note that
+    # if nothing is specified here and disable_existing_loggers is True,
+    # django.db.backends will still log unless it is disabled explicitly.
+    'disable_existing_loggers': False,
+    # If apache2 mod_wsgi is used to deploy OpenStack dashboard
+    # timestamp is output by mod_wsgi. If WSGI framework you use does not
+    # output timestamp for logging, add %(asctime)s in the following
+    # format definitions.
+    'formatters': {
+        'console': {
+            'format': '%(levelname)s %(name)s %(message)s'
+        },
+        'operation': {
+            # The format of "%(message)s" is defined by
+            # OPERATION_LOG_OPTIONS['format']
+            'format': '%(message)s'
+        },
+    },
+    'handlers': {
+        'null': {
+            'level': 'DEBUG',
+            'class': 'logging.NullHandler',
+        },
+        'console': {
+            # Set the level to "DEBUG" for verbose output logging.
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console',
+        },
+        'operation': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'operation',
+        },
+    },
+    'loggers': {
+        'horizon': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'horizon.operation_log': {
+            'handlers': ['operation'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'openstack_dashboard': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'novaclient': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'cinderclient': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'keystoneauth': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'keystoneclient': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'glanceclient': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'neutronclient': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'swiftclient': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'oslo_policy': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'openstack_auth': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        # Logging from django.db.backends is VERY verbose, send to null
+        # by default.
+        'django.db.backends': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'requests': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'urllib3': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'chardet.charsetprober': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'iso8601': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'scss': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+    },
+}
+
+# 'direction' should not be specified for all_tcp/udp/icmp.
+# It is specified in the form.
+SECURITY_GROUP_RULES = {
+    'all_tcp': {
+        'name': _('All TCP'),
+        'ip_protocol': 'tcp',
+        'from_port': '1',
+        'to_port': '65535',
+    },
+    'all_udp': {
+        'name': _('All UDP'),
+        'ip_protocol': 'udp',
+        'from_port': '1',
+        'to_port': '65535',
+    },
+    'all_icmp': {
+        'name': _('All ICMP'),
+        'ip_protocol': 'icmp',
+        'from_port': '-1',
+        'to_port': '-1',
+    },
+    'ssh': {
+        'name': 'SSH',
+        'ip_protocol': 'tcp',
+        'from_port': '22',
+        'to_port': '22',
+    },
+    'smtp': {
+        'name': 'SMTP',
+        'ip_protocol': 'tcp',
+        'from_port': '25',
+        'to_port': '25',
+    },
+    'dns': {
+        'name': 'DNS',
+        'ip_protocol': 'tcp',
+        'from_port': '53',
+        'to_port': '53',
+    },
+    'http': {
+        'name': 'HTTP',
+        'ip_protocol': 'tcp',
+        'from_port': '80',
+        'to_port': '80',
+    },
+    'pop3': {
+        'name': 'POP3',
+        'ip_protocol': 'tcp',
+        'from_port': '110',
+        'to_port': '110',
+    },
+    'imap': {
+        'name': 'IMAP',
+        'ip_protocol': 'tcp',
+        'from_port': '143',
+        'to_port': '143',
+    },
+    'ldap': {
+        'name': 'LDAP',
+        'ip_protocol': 'tcp',
+        'from_port': '389',
+        'to_port': '389',
+    },
+    'https': {
+        'name': 'HTTPS',
+        'ip_protocol': 'tcp',
+        'from_port': '443',
+        'to_port': '443',
+    },
+    'smtps': {
+        'name': 'SMTPS',
+        'ip_protocol': 'tcp',
+        'from_port': '465',
+        'to_port': '465',
+    },
+    'imaps': {
+        'name': 'IMAPS',
+        'ip_protocol': 'tcp',
+        'from_port': '993',
+        'to_port': '993',
+    },
+    'pop3s': {
+        'name': 'POP3S',
+        'ip_protocol': 'tcp',
+        'from_port': '995',
+        'to_port': '995',
+    },
+    'ms_sql': {
+        'name': 'MS SQL',
+        'ip_protocol': 'tcp',
+        'from_port': '1433',
+        'to_port': '1433',
+    },
+    'mysql': {
+        'name': 'MYSQL',
+        'ip_protocol': 'tcp',
+        'from_port': '3306',
+        'to_port': '3306',
+    },
+    'rdp': {
+        'name': 'RDP',
+        'ip_protocol': 'tcp',
+        'from_port': '3389',
+        'to_port': '3389',
+    },
+}
+
+# You should not add settings to this list for out of tree extensions.
+# See: https://wiki.openstack.org/wiki/Horizon/RESTAPI
+REST_API_REQUIRED_SETTINGS = ['OPENSTACK_HYPERVISOR_FEATURES',
+                              'LAUNCH_INSTANCE_DEFAULTS',
+                              'OPENSTACK_IMAGE_FORMATS',
+                              'OPENSTACK_KEYSTONE_BACKEND',
+                              'OPENSTACK_KEYSTONE_DEFAULT_DOMAIN',
+                              'CREATE_IMAGE_DEFAULTS',
+                              'ENFORCE_PASSWORD_CHECK']
+
+#ALLOWED_PRIVATE_SUBNET_CIDR = {
+#    'ipv4': ['10.0.0.0/8', '192.168.0.0/16'],
+#    'ipv6': ['fc00::/7']
+#}
+ALLOWED_PRIVATE_SUBNET_CIDR = {'ipv4': [], 'ipv6': []}
+
+# Additional settings can be made available to the client side for
+# extensibility by specifying them in REST_API_ADDITIONAL_SETTINGS
+# !! Please use extreme caution as the settings are transferred via HTTP/S
+# and are not encrypted on the browser. This is an experimental API and
+# may be deprecated in the future without notice.
+#REST_API_ADDITIONAL_SETTINGS = []
+
+#PASSWORD_EXPIRES_WARNING_THRESHOLD_DAYS = 0

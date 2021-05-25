@@ -1,0 +1,20 @@
+---
+- name: Install openstack-dashboard
+  tags: [install]
+  apt:
+    name: openstack-dashboard
+    state: present
+
+- name: Add horizon configuration file
+  tags: [config]
+  template:
+    dest: /etc/openstack-dashboard/local_settings.py
+    src: ../templates/local_settings.py.j2
+    owner: root
+    group: horizon
+    mode: 0640
+  notify:
+    - "restart apache"
+
+- name: Ensure handlers are notified
+  meta: flush_handlers

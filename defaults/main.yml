@@ -1,0 +1,10 @@
+---
+horizon_keystone:
+  multidomain: True
+  domain_dropdown: False
+  default_domain: "Default"
+  domain_choices: {}
+console_type: "AUTO"
+webroot: "/horizon/"
+memcached_port: 11211
+keystone_port: 5000

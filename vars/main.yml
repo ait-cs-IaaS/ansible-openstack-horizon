@@ -1,0 +1,8 @@
+---
+use_ssl: True
+horizon_host_name: x31705.castle.local
+allowed_hosts:
+  - '*'
+images_upload_mode: 'direct'
+horizon_config: {}
+timezone: "CET"

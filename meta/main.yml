@@ -1,0 +1,12 @@
+galaxy_info:
+  role_name: openstack-horizon
+  namespace: b3n4kh
+  author: Benjamin Akhras
+  description: openstack horizon dashboard configuration
+  company: Austrian Institute of Technology
+
+  license: license (GPLv2, CC-BY, etc)
+
+  min_ansible_version: 3.0
+
+  galaxy_tags: []
