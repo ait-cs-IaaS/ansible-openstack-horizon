@@ -5,7 +5,7 @@ galaxy_info:
   description: openstack horizon dashboard configuration
   company: Austrian Institute of Technology
 
-  license: license (GPLv2, CC-BY, etc)
+  license: GPL-3.0
 
   min_ansible_version: 3.0
 
